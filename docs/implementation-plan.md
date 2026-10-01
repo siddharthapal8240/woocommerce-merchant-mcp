@@ -59,3 +59,29 @@ Acceptance: `npm ci` and documented checks pass; live evidence exists; setup is 
 - Phase 3: complete. Live tests passed for all eight tools, native auth, denied writes, pagination, search, variants, missing records and null stock.
 - Phase 4: complete for the MCP-specification route. Compiled stdio demo and exported tool specification are checked in; model-host prompts/configuration are supplied. Direct Agent Studio access remains unavailable and is not claimed.
 - Phase 5: complete. Documentation, fictional evidence and implementation are committed and pushed. Fresh GitHub CI passed both static/unit and real-store jobs: https://github.com/siddharthapal8240/woocommerce-merchant-mcp/actions/runs/36917430511. The dedicated repository is private; grant reviewer access before submitting its link.
+
+# Production-minded reassessment (2 October 2026)
+
+Branch: `refactor/connector-reliability`. Existing `main` and its working store/evidence are preserved. The three existing Docker services are healthy; no connector or duplicate setup process was running at review time.
+
+## Concrete gaps and priority
+
+1. **P1 capacity:** every MCP call independently starts HTTP work. There is no active-work bound, bounded admission queue, start-rate control, or shared Retry-After cooldown. Deadlines begin inside HTTP, not at admission. Prove these bounds before making performance claims.
+2. **P1 lifecycle:** no explicit shutdown lifecycle or ownership of outbound connections. Cancellation is partly supported but queue/timer cleanup cannot yet be tested because no scheduler exists.
+3. **P1 boundaries:** `server.ts` mixes MCP registration, upstream shape validation, pagination and error handling. The demo owns inventory interpretation. Separate transport, application operations, adapter mappings and shared contracts without adding services.
+4. **P2 observability:** no correlation IDs, structured operational events or bounded aggregate counters. Introduce allowlisted fields, stderr-only logs and backpressure-aware logging.
+5. **P2 proof/documentation:** tests prove sequential behavior but not overlapping load, fairness, coordinated retry or lifecycle cleanup. Existing CI/live evidence remains valid for the prototype, not for the new controls.
+
+## New delivery phases and acceptance
+
+| Phase | Work | Acceptance / evidence |
+| --- | --- | --- |
+| A — Review and decisions | Baseline tests, process/Git inspection, architecture and ADRs | Baseline unchanged; prioritized gaps and explicit single-store scope recorded |
+| B — Boundaries | Shared contracts; explicit Woo mappings; order/inventory services; thin MCP handlers; composition root | Existing tool names/results preserved; mapping and domain tests; no runtime import of setup/demo code |
+| C — Reliability and lifecycle | Bounded admission and concurrency; process-local per-store pacing/cooldown; whole-operation deadline; cancellable retries; owned HTTP pool; shutdown | Deterministic tests prove queue/in-flight bounds, overload, cancellation, deadlines, shared cooldown and cleanup |
+| D — Observability | Correlated allowlisted JSON events, bounded counters/high-water gauges, stderr backpressure | No credential/query/record data in logs; stdout protocol remains clean; usable local inspection command |
+| E — Evidence and handoff | Synthetic load report, live store tests, compiled demo, schema export, docs, CI, secret review | Measured conditions/results recorded; live and synthetic claims separate; clean pushed repository and inspected CI |
+
+No cache or circuit breaker is planned: stock freshness matters and there is no evidence that either is necessary. Admission limits, pacing, cooldown and finite retries directly address the observed risks. These controls are process-local; replicas would require coordinated store quotas and authenticated tenant ownership, neither of which is claimed.
+
+Status: review complete; phases B–E pending verification. Do not treat prototype completion above as evidence for these changes.
