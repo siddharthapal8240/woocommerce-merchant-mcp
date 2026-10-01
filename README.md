@@ -118,6 +118,7 @@ GitHub Actions runs both the static/unit suite and a fresh real-store end-to-end
 - [Local store setup](docs/local-store.md)
 - [Demo walkthrough](docs/agent-demo.md)
 - [Verification record](docs/verification.md)
+- [Submission summary and walkthrough](docs/submission.md)
 
 ## References
 

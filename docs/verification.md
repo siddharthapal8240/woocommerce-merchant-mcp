@@ -42,3 +42,7 @@ The unit/fault suite additionally verifies numeric and HTTP-date Retry-After, ba
 - `npm run demo`: reproduce the MCP trace using the seeded store.
 
 The trace is a programmatic MCP workflow, not an LLM conversation. The assignment's MCP specification requirement is implemented; direct Agent Studio connectivity requires access and is not claimed. GitHub Actions separately bootstraps a fresh store and runs the live suite and demo.
+
+## Independent clean-run verification
+
+[GitHub Actions run 36917430511](https://github.com/siddharthapal8240/woocommerce-merchant-mcp/actions/runs/36917430511) passed both jobs on implementation commit `d9446d5`: formatting/types/unit tests/build, and a fresh Ubuntu runner installing the real store, seeding fixtures, running the live suite and producing the demo artifact. This separately verifies the bootstrap without relying on this Mac's existing volumes.

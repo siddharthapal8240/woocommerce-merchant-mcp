@@ -58,4 +58,4 @@ Acceptance: `npm ci` and documented checks pass; live evidence exists; setup is 
 - Phase 2: complete. Real WooCommerce 10.2.2 store runs over verified local HTTPS; restricted credentials and repeatable fictional seed verified.
 - Phase 3: complete. Live tests passed for all eight tools, native auth, denied writes, pagination, search, variants, missing records and null stock.
 - Phase 4: complete for the MCP-specification route. Compiled stdio demo and exported tool specification are checked in; model-host prompts/configuration are supplied. Direct Agent Studio access remains unavailable and is not claimed.
-- Phase 5: documentation and local verification complete; final push and fresh GitHub CI verification in progress.
+- Phase 5: complete. Documentation, fictional evidence and implementation are committed and pushed. Fresh GitHub CI passed both static/unit and real-store jobs: https://github.com/siddharthapal8240/woocommerce-merchant-mcp/actions/runs/36917430511. The dedicated repository is private; grant reviewer access before submitting its link.
