@@ -2,7 +2,7 @@
 
 A TypeScript connector that lets an agent read a merchant's orders and inventory through eight MCP tools. Built for Razorpay's Forward-Deployed Engineer assignment, option 3.
 
-**Verified:** native WooCommerce API-key authentication over HTTPS, all eight tools through a compiled stdio MCP server, real-store search and pagination, variant inventory, and WooCommerce's rejection of writes with the connector's read-only key.
+**Implemented:** a single-store modular monolith with separate transport, application services, WooCommerce mappings, HTTP reliability and observability. Native authentication, all eight MCP tools, search, pagination, variants and denied writes are verified against a real HTTPS WooCommerce store.
 
 ## Merchant use case
 
@@ -24,6 +24,7 @@ npm run store:setup
 npm run store:seed
 npm run check
 npm run test:live
+npm run test:capacity
 npm run demo
 ```
 
@@ -92,26 +93,35 @@ npm start
 
 The server waits for JSON-RPC on stdin/stdout; it does not open a website. A normally certified remote store does not need the local CA. For the supplied local store, set `NODE_EXTRA_CA_CERTS` to the absolute `.local/root.crt` path before starting Node, or use the host configuration above.
 
-## Reliability and limits
+## Reliability and operating bounds
 
-- GET-only endpoints, read-only key, HTTPS, header credentials and refused redirects.
-- Bounded retries for 429/502/503/504; numeric/date Retry-After support; long waits return an actionable error. Total upstream deadline: 25 seconds.
-- Cancellation propagation, 1 MiB response limit, upstream field projection and response validation.
-- Customer contact details, addresses, notes and metadata are excluded from tool results. Merchant-entered names remain untrusted text.
-- Decimal money strings and null stock quantities are preserved. Internal order IDs may differ from display numbers. Parent-managed variation stock requires checking the parent.
-- One store and trusted operator per process. No multi-tenant authorization, global quota coordination, refunds, payment collection, order writes or inventory updates.
-- Stdio transport only. Agent Studio access and hosted transport compatibility are not claimed.
+- Four active operations and sixteen FIFO queue slots by default; overload returns a safe correlated error. Slots remain occupied through retries.
+- Five upstream starts/second, shared process-local Retry-After cooldown, bounded jittered retries, and a 25-second deadline covering admission through mapping.
+- Cancellation and shutdown clean up queued work, timers, abort listeners and owned HTTP connections. Stdio input/output buffers have explicit limits.
+- 1 MiB maximum upstream response; at most 50 records per page; explicit field mappings exclude customer contact details, addresses, notes and metadata.
+- Structured, allowlisted stderr logs with request IDs and fixed-cardinality counters. Slow logging drops events instead of accumulating a queue. Inspect the MCP resource `diagnostics://metrics` or saved logs:
+
+```sh
+MCP_LOG_FILE=.local/connector.ndjson npm run demo
+npm run logs:inspect -- .local/connector.ndjson
+```
+
+A deterministic synthetic test offered 100 simultaneous calls: 20 completed, 80 received overload errors, maximum in-flight requests stayed at 4 and maximum queue depth at 16. This uses a fake clock and HTTP adapter; it is **not a WooCommerce performance claim**. [Conditions and results](evidence/capacity.json).
+
+These controls are process-local, with one trusted operator/store per process. No multi-tenant isolation, distributed quota, cache or circuit breaker is claimed. The connector cannot refund, collect payments, change orders or update inventory. Merchant text remains untrusted. [Architecture and decisions](docs/architecture.md) · [Configuration and operations](docs/operations.md).
 
 ## Testing and documentation
 
-| Command                | Purpose                                                                            |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| `npm run check`        | Formatting, strict types, 15 unit/protocol/fault tests, build                      |
-| `npm run test:live`    | Real WooCommerce authentication, eight tools, pagination, errors and denied writes |
-| `npm run demo`         | Compiled server → stdio MCP client → real store; saves fictional evidence          |
-| `npm run tools:export` | Regenerate the MCP tool specification                                              |
+| Command                              | Purpose                                                                            |
+| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `npm run check`                      | Formatting, strict compilation, domain/adapter/MCP/reliability/lifecycle tests     |
+| `npm run test:live`                  | Real WooCommerce authentication, eight tools, pagination, errors and denied writes |
+| `npm run demo`                       | Compiled server → stdio MCP client → real store; saves fictional evidence          |
+| `npm run test:capacity`              | Reproduce deterministic synthetic bounds/cooldown/cancellation evidence            |
+| `npm run check:secrets -- --history` | Check candidate files and Git history for fixture secrets/private files            |
+| `npm run tools:export`               | Regenerate the MCP tool specification                                              |
 
-GitHub Actions runs both the static/unit suite and a fresh real-store end-to-end job.
+GitHub Actions checks Node.js 22 and 24, regenerates the tool specification, captures synthetic evidence, and runs a fresh real-store end-to-end job.
 
 - [Phased plan and acceptance criteria](docs/implementation-plan.md)
 - [Architecture and tradeoffs](docs/architecture.md)

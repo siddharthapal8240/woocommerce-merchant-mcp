@@ -2,7 +2,7 @@
   "tools": [
     {
       "name": "list_orders",
-      "description": "List one page of orders, optionally filtered by status. Does not include customer contact or address information.",
+      "description": "List one page of orders, optionally filtered by status. Excludes customer contact data and addresses.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -34,7 +34,7 @@
     },
     {
       "name": "search_orders",
-      "description": "Search orders using WooCommerce native text search. Matching depends on the store; this is not guaranteed exact order-number lookup.",
+      "description": "Search orders using native WooCommerce text matching; not a guaranteed exact display-number lookup.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -56,7 +56,7 @@
     },
     {
       "name": "get_order",
-      "description": "Get an order using its internal numeric WooCommerce ID, obtained from list/search results.",
+      "description": "Get an order using its internal numeric ID from list/search results.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -76,7 +76,7 @@
     },
     {
       "name": "list_products",
-      "description": "List one page of products and inventory fields. Null stock quantity is not zero; parent stock does not establish variant availability.",
+      "description": "List one page of products and stock. Null quantities are untracked; parent stock does not establish variation availability.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -97,7 +97,7 @@
     },
     {
       "name": "search_products",
-      "description": "Search products by native text search and/or an exact SKU filter. At least one filter is required.",
+      "description": "Search products by native text and/or SKU filter. At least one filter is required.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -119,7 +119,7 @@
     },
     {
       "name": "get_product",
-      "description": "Get a product by its internal ID, including stock tracking state and variation IDs. Use list_product_variations or get_product_variation for variant-level inventory.",
+      "description": "Get a product by internal ID, including inventory and variation IDs.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -139,7 +139,7 @@
     },
     {
       "name": "list_product_variations",
-      "description": "List variations of a variable product and their stock. Use a parent product ID from a product or order. Stock managed by parent requires checking the parent too.",
+      "description": "List variations and inventory by parent product ID. Parent-managed stock requires checking the parent.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -161,7 +161,7 @@
     },
     {
       "name": "get_product_variation",
-      "description": "Get the exact variation referenced by an order line item. Supply both the parent product_id and variation_id.",
+      "description": "Get exact variation inventory using its parent product_id and variation_id.",
       "inputSchema": {
         "type": "object",
         "properties": {

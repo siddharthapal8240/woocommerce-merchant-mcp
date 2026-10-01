@@ -1,0 +1,39 @@
+{
+  "measuredAt": "2026-10-01T20:15:27.682Z",
+  "conditions": "Deterministic virtual clock and synthetic HTTP adapter in one Node process. Not a WooCommerce benchmark or a real-world throughput claim.",
+  "burst": {
+    "offered": 100,
+    "succeeded": 20,
+    "overloaded": 80,
+    "maxInFlight": 4,
+    "maxQueue": 16,
+    "virtualDurationMs": 560,
+    "pendingTimersAfter": 0,
+    "configured": {
+      "concurrency": 4,
+      "queueCapacity": 16,
+      "startsPerSecond": 50,
+      "deadlineMs": 2000,
+      "maxAttempts": 3,
+      "maxResponseBytes": 1048576,
+      "shutdownMs": 5000
+    }
+  },
+  "cooldown": {
+    "retryAfterMs": 1000,
+    "upstreamStartTimesMs": [
+      0,
+      1000,
+      1020
+    ],
+    "retries": 1,
+    "throttles": 1,
+    "pendingTimersAfter": 0
+  },
+  "cancellation": {
+    "activeAndQueuedCancelled": 2,
+    "remainingSucceeded": 1,
+    "upstreamCalls": 2,
+    "pendingTimersAfter": 0
+  }
+}

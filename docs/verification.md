@@ -1,48 +1,57 @@
 # Verification record
 
-Verified locally on 2 October 2026 (Asia/Kolkata).
+## Current reassessment
 
-## Environment
+2 October 2026 (Asia/Kolkata), branch `refactor/connector-reliability`. The existing real store was reused; setup and seeding were not duplicated. Prior prototype evidence is retained in Git history and must not be confused with the new controls.
 
-- macOS on Apple Silicon, Node.js 24.5.0.
-- Dedicated Colima profile `merchant-mcp`: 2 CPUs, 4 GiB RAM, 20 GiB virtual disk.
-- WordPress 6.8.3 / PHP 8.3, WooCommerce 10.2.2, MariaDB 11.4 and Caddy 2.10.2.
-- Docker images pinned by digest; npm dependencies pinned in package-lock.json.
-- Local HTTPS with project-specific CA trust. Native API-key authentication; no TLS verification bypass.
+Environment: macOS/Apple Silicon, Node.js 24.5.0; the existing two-CPU/four-GiB Colima VM; WordPress 6.8.3, WooCommerce 10.2.2, MariaDB 11.4 and Caddy 2.10.2. Docker image digests and npm lockfile pin dependencies. Native API-key authentication uses verified HTTPS and a project-specific CA.
 
-## Results
+## Local checks
 
-| Check                           | Observed result                                                     |
-| ------------------------------- | ------------------------------------------------------------------- |
-| Strict TypeScript and build     | Passed                                                              |
-| Unit/protocol/fault suite       | 15 tests passed                                                     |
-| Live WooCommerce integration    | Passed through the compiled stdio server                            |
-| MCP tool discovery              | All eight read-only tools discovered                                |
-| Order list/get/search           | Real seeded records returned; search matched fictional order data   |
-| Product list/get/search         | SKU/text matching and stock filter returned expected records        |
-| Pagination                      | Processing orders split over two distinct pages                     |
-| Product variations              | Two hoodie variations retrieved; exact size L reported out of stock |
-| Untracked stock                 | Gift Wrapping quantity remained null                                |
-| Invalid API secret              | WooCommerce rejected it with HTTP 401                               |
-| Runtime write attempt           | WooCommerce rejected the Read key with HTTP 401                     |
-| Missing record                  | Safe NOT_FOUND tool error                                           |
-| Unknown SKU                     | Empty result, no invented record                                    |
-| Data minimization               | Order output omitted customer email and notes                       |
-| Repeat setup and seed           | Completed; reused five products, two variations and four orders     |
-| Deterministic merchant workflow | Actual MCP calls produced the committed fictional trace             |
+- Strict compilation and formatting pass; all **30** domain/mapping, adapter, MCP, deterministic reliability and compiled-process lifecycle tests pass.
+- Live WooCommerce tests pass for all eight tools, real search/pagination, exact variant stock, null stock, invalid credentials, missing records and rejected writes with the Read key.
+- Compiled stdio demo still performs ten actual MCP calls and reports the fictional tote/hoodie stock concerns.
+- Logging inspection was exercised against the real demo: ten completed operations, no failures/retries/throttles, maximum active count one and no malformed log records. Request latency includes the configured pacing wait and is not a store-capacity measurement.
+- SIGTERM and EOF tests prove the compiled process exits cleanly and stdout contains JSON-RPC only. Input-frame and stalled-output limits are tested separately.
+- An observed same-deadline race was fixed: queued work is explicitly checked at dispatch instead of relying solely on the ordering of timer callbacks.
 
-The unit/fault suite additionally verifies numeric and HTTP-date Retry-After, backoff, retry exhaustion, cancellation, response-size limits, malformed responses, endpoint restrictions and safe errors. Those injected failures are synthetic; they do not claim that a live store was deliberately overloaded.
+## Deterministic capacity experiment
 
-## Evidence and reproducibility
+Source: `tests/support/capacity.ts`; command: `npm run test:capacity`; raw evidence: `evidence/capacity.json`.
 
-- `evidence/demo.json`: real-store tool arguments, structured results and deterministic findings.
-- `docs/mcp-tools.json`: specifications exported from the server's actual tool discovery response.
-- `npm run check`: formatting, types, unit/protocol/fault suite and build.
-- `npm run test:live`: real-store verification; run setup and seed first.
-- `npm run demo`: reproduce the MCP trace using the seeded store.
+**Conditions:** one process, virtual clock, synthetic HTTP adapter, all 100 calls offered before advancing time. Four active operation slots, sixteen queue slots, 50 upstream starts/second (a 20 ms interval), 100 ms injected response delay, 2000 ms total deadline. This deliberately differs from the conservative runtime default of five starts/second.
 
-The trace is a programmatic MCP workflow, not an LLM conversation. The assignment's MCP specification requirement is implemented; direct Agent Studio connectivity requires access and is not claimed. GitHub Actions separately bootstraps a fresh store and runs the live suite and demo.
+| Observation                                      | Measured result |
+| ------------------------------------------------ | --------------- |
+| Offered calls                                    | 100             |
+| Completed calls                                  | 20              |
+| Explicit overload responses                      | 80              |
+| Maximum HTTP calls in flight                     | 4               |
+| Maximum queue depth                              | 16              |
+| Virtual completion time                          | 560 ms          |
+| Outstanding request/wait timers after settlement | 0               |
 
-## Independent clean-run verification
+Separate coordinated-throttling scenario: two overlapping operations, first response 429 with Retry-After one second. Observed upstream start times were **0, 1000 and 1020 ms**. The retry and unrelated call both respected the shared cooldown and start spacing. A corresponding 503 case also passes.
 
-[GitHub Actions run 36917430511](https://github.com/siddharthapal8240/woocommerce-merchant-mcp/actions/runs/36917430511) passed both jobs on implementation commit `d9446d5`: formatting/types/unit tests/build, and a fresh Ubuntu runner installing the real store, seeding fixtures, running the live suite and producing the demo artifact. This separately verifies the bootstrap without relying on this Mac's existing volumes.
+Cancellation scenario: one active and one queued request cancelled; the remaining request completed. Only two HTTP calls started, and request timers and external abort listeners were removed. Additional tests verify FIFO, zero-capacity queues, total deadlines during queueing and response reads, finite retry jitter/exhaustion, long cooldowns affecting later calls, and bounded shutdown even if a transport fails to close.
+
+These are **synthetic control tests**, not WooCommerce load tests. No requests-per-second capacity, production latency SLO, heap/RSS bound or multi-replica scalability claim is inferred.
+
+## Reproduce
+
+```sh
+npm ci
+npm run check
+npm run test:capacity
+npm run test:live
+MCP_LOG_FILE=.local/connector.ndjson npm run demo
+npm run logs:inspect -- .local/connector.ndjson
+npm run tools:export
+npm run check:secrets -- --history
+```
+
+A fresh environment must run store setup/seed first. CI performs that bootstrap on a clean Ubuntu runner and verifies Node.js 22/24 separately. New CI run results will be recorded after pushing this reassessment; earlier successful prototype runs are historical evidence only.
+
+## Explicit limitations
+
+The demo is a scripted MCP workflow, not an actual LLM agent conversation. Direct Agent Studio connectivity remains unverified without account/transport access. Controls and metrics are process-local. Private repository access must be granted to the hiring team before submitting the link.

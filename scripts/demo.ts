@@ -1,7 +1,8 @@
+import { assessStock } from '../src/application/inventory.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { connect } from './mcp-client.js';
-import { orderSchema, productSchema, variationSchema } from '../src/schemas.js';
+import { orderSchema, productSchema, variationSchema } from '../src/contracts/records.js';
 
 async function main() {
   const client = await connect(process.env.MCP_ENV_FILE ?? '.local/connector.env');
@@ -13,6 +14,7 @@ async function main() {
       const result = await client.callTool({ name, arguments: args });
       if (result.isError || !result.structuredContent)
         throw new Error(`Tool ${name} failed. Run the live tests to diagnose.`);
+      if (trace.length >= 200) throw new Error('Demo tool-call budget exceeded.');
       trace.push({ tool: name, arguments: args, result: result.structuredContent });
       return z
         .object({ data: z.unknown(), pagination: z.unknown().optional() })
@@ -21,7 +23,9 @@ async function main() {
     const rows: string[] = [];
     for (const status of ['processing', 'on-hold']) {
       let nextPage: number | null = 1;
+      let pages = 0;
       while (nextPage !== null) {
+        if (++pages > 20) throw new Error('Demo page budget exceeded; narrow the workflow.');
         const result = await call('list_orders', { status, page: nextPage, per_page: 2 });
         const orders = z.array(orderSchema).parse(result.data);
         nextPage = z.object({ nextPage: z.number().nullable() }).parse(result.pagination).nextPage;
@@ -42,19 +46,13 @@ async function main() {
                     ).data,
                   )
                 : product;
-            const stock = inventory.manage_stock === 'parent' ? product : inventory;
-            const verdict =
-              stock.stock_status === 'outofstock'
-                ? 'OUT OF STOCK'
-                : stock.stock_status === 'onbackorder'
-                  ? 'BACKORDER — merchant review needed'
-                  : stock.manage_stock === true && stock.stock_quantity !== null
-                    ? stock.stock_quantity >= line.quantity
-                      ? 'CURRENT STOCK SUFFICIENT'
-                      : 'INSUFFICIENT CURRENT STOCK'
-                    : 'QUANTITY UNTRACKED — merchant review needed';
+            const stock = assessStock(
+              product,
+              line.quantity,
+              line.variation_id > 0 ? inventory : undefined,
+            );
             rows.push(
-              `Order #${order.number} (${order.status}): ${line.name} × ${line.quantity} — ${verdict}; current quantity: ${stock.stock_quantity ?? 'untracked'}.`,
+              `Order #${order.number} (${order.status}): ${line.name} × ${line.quantity} — ${stock.verdict}; current quantity: ${stock.quantity ?? 'untracked'}.`,
             );
           }
         }

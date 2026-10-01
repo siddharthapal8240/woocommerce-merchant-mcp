@@ -74,14 +74,20 @@ Branch: `refactor/connector-reliability`. Existing `main` and its working store/
 
 ## New delivery phases and acceptance
 
-| Phase | Work | Acceptance / evidence |
-| --- | --- | --- |
-| A — Review and decisions | Baseline tests, process/Git inspection, architecture and ADRs | Baseline unchanged; prioritized gaps and explicit single-store scope recorded |
-| B — Boundaries | Shared contracts; explicit Woo mappings; order/inventory services; thin MCP handlers; composition root | Existing tool names/results preserved; mapping and domain tests; no runtime import of setup/demo code |
-| C — Reliability and lifecycle | Bounded admission and concurrency; process-local per-store pacing/cooldown; whole-operation deadline; cancellable retries; owned HTTP pool; shutdown | Deterministic tests prove queue/in-flight bounds, overload, cancellation, deadlines, shared cooldown and cleanup |
-| D — Observability | Correlated allowlisted JSON events, bounded counters/high-water gauges, stderr backpressure | No credential/query/record data in logs; stdout protocol remains clean; usable local inspection command |
-| E — Evidence and handoff | Synthetic load report, live store tests, compiled demo, schema export, docs, CI, secret review | Measured conditions/results recorded; live and synthetic claims separate; clean pushed repository and inspected CI |
+| Phase                         | Work                                                                                                                                                 | Acceptance / evidence                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| A — Review and decisions      | Baseline tests, process/Git inspection, architecture and ADRs                                                                                        | Baseline unchanged; prioritized gaps and explicit single-store scope recorded                                      |
+| B — Boundaries                | Shared contracts; explicit Woo mappings; order/inventory services; thin MCP handlers; composition root                                               | Existing tool names/results preserved; mapping and domain tests; no runtime import of setup/demo code              |
+| C — Reliability and lifecycle | Bounded admission and concurrency; process-local per-store pacing/cooldown; whole-operation deadline; cancellable retries; owned HTTP pool; shutdown | Deterministic tests prove queue/in-flight bounds, overload, cancellation, deadlines, shared cooldown and cleanup   |
+| D — Observability             | Correlated allowlisted JSON events, bounded counters/high-water gauges, stderr backpressure                                                          | No credential/query/record data in logs; stdout protocol remains clean; usable local inspection command            |
+| E — Evidence and handoff      | Synthetic load report, live store tests, compiled demo, schema export, docs, CI, secret review                                                       | Measured conditions/results recorded; live and synthetic claims separate; clean pushed repository and inspected CI |
 
 No cache or circuit breaker is planned: stock freshness matters and there is no evidence that either is necessary. Admission limits, pacing, cooldown and finite retries directly address the observed risks. These controls are process-local; replicas would require coordinated store quotas and authenticated tenant ownership, neither of which is claimed.
 
-Status: review complete; phases B–E pending verification. Do not treat prototype completion above as evidence for these changes.
+## Reassessment completion evidence
+
+- A: complete. Clean Git baseline, existing process/store inspection and the original 15 checks recorded before changes. Review and ADRs committed as 71631b6.
+- B: implemented and locally verified. Eight MCP tool names and record contracts preserved; thin handlers, domain services and explicit mappings tested independently.
+- C: implemented and locally verified. Deterministic admission/cooldown/deadline/cancellation tests pass, including a fixed same-deadline dispatch race. The 100-call synthetic experiment measured 4 maximum in-flight, 16 maximum queued, 20 successes, 80 overloads and zero pending timers.
+- D: implemented and locally verified. Correlated allowlisted logs, bounded counters, diagnostics resource, slow-stderr handling and a real-demo log inspection passed. No new monitoring service was added.
+- E: local evidence complete: 30 unit/integration/reliability/lifecycle tests, strict compilation, the real WooCommerce suite and compiled demo passed. Focused candidate-file and Git-history secret checks passed. Updated schema, configuration, failure modes, operations, limitations and submission mapping are included. **New GitHub CI verification is pending after push; reassessment is not yet marked complete.**

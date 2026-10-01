@@ -4,17 +4,27 @@ permissions:
   contents: read
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm run check:secrets
+      - run: npm run test:capacity
+      - run: npm run tools:export && git diff --exit-code -- docs/mcp-tools.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-capacity-node-${{ matrix.node }}
+          path: evidence/capacity.json
   real-store:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

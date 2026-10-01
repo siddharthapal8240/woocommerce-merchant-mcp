@@ -8,7 +8,9 @@ npm run store:setup
 npm run store:seed
 npm run check
 npm run test:live
-npm run demo
+npm run test:capacity
+MCP_LOG_FILE=.local/connector.ndjson npm run demo
+npm run logs:inspect -- .local/connector.ndjson
 npm run tools:export
 ```
 
@@ -60,3 +62,7 @@ Order and product IDs are assigned by each installation. Never hardcode IDs into
 ## Interview explanation
 
 Start with the merchant question, show the tool call and returned evidence, then explain why the answer is bounded: stock can change, a displayed order number may not equal its ID, and this connector cannot reserve inventory or make changes. Show `npm run test:live` proving native authentication and denied writes, then show synthetic tests for rate limiting and cancellations.
+
+## Operational demonstration
+
+Show the bounded synthetic experiment separately from the real-store trace: 100 offered calls with 4 active and 16 queue slots, 20 accepted completions and 80 overload responses. Explain that virtual time and injected latency prove controls, not merchant capacity. Show shared cooldown start times and zero remaining timers. Correlate a real-store result requestId with stderr events, then inspect `diagnostics://metrics`.

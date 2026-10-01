@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T19:51:06.097Z",
+  "generatedAt": "2026-10-01T20:15:30.346Z",
   "mode": "deterministic MCP client workflow against real WooCommerce; not an LLM-generated answer",
   "question": "Which processing or on-hold orders have stock concerns?",
   "findings": [
@@ -63,12 +63,14 @@
             ]
           }
         ],
-        "fetchedAt": "2026-10-01T19:51:05.744Z",
+        "fetchedAt": "2026-10-01T20:15:28.629Z",
+        "requestId": "c9eaaf23-f388-4666-8279-b58860a78a19",
         "pagination": {
           "page": 1,
           "perPage": 2,
           "total": 2,
           "totalPages": 1,
+          "hasMore": false,
           "nextPage": null
         }
       }
@@ -105,7 +107,8 @@
             }
           ]
         },
-        "fetchedAt": "2026-10-01T19:51:05.790Z"
+        "fetchedAt": "2026-10-01T20:15:28.736Z",
+        "requestId": "175053ca-2590-4675-85d3-c5ea86df3bc2"
       }
     },
     {
@@ -126,7 +129,8 @@
           "stock_status": "outofstock",
           "variations": []
         },
-        "fetchedAt": "2026-10-01T19:51:05.826Z"
+        "fetchedAt": "2026-10-01T20:15:28.928Z",
+        "requestId": "1f30e293-7787-4753-8efe-c17f4325dc40"
       }
     },
     {
@@ -147,7 +151,8 @@
           "stock_status": "instock",
           "variations": []
         },
-        "fetchedAt": "2026-10-01T19:51:05.862Z"
+        "fetchedAt": "2026-10-01T20:15:29.141Z",
+        "requestId": "306c0ef0-e14e-436a-b3e9-f2327a08a457"
       }
     },
     {
@@ -174,7 +179,8 @@
             }
           ]
         },
-        "fetchedAt": "2026-10-01T19:51:05.900Z"
+        "fetchedAt": "2026-10-01T20:15:29.349Z",
+        "requestId": "ff235334-e136-4f90-baa2-84e7efe2ef0e"
       }
     },
     {
@@ -195,7 +201,8 @@
           "stock_status": "instock",
           "variations": []
         },
-        "fetchedAt": "2026-10-01T19:51:05.935Z"
+        "fetchedAt": "2026-10-01T20:15:29.546Z",
+        "requestId": "8882d0fd-175f-4826-b2cd-335e5389e399"
       }
     },
     {
@@ -226,12 +233,14 @@
             ]
           }
         ],
-        "fetchedAt": "2026-10-01T19:51:05.981Z",
+        "fetchedAt": "2026-10-01T20:15:29.752Z",
+        "requestId": "2effffe6-cdb8-402a-9021-decc414ba7d8",
         "pagination": {
           "page": 1,
           "perPage": 2,
           "total": 1,
           "totalPages": 1,
+          "hasMore": false,
           "nextPage": null
         }
       }
@@ -260,7 +269,8 @@
             }
           ]
         },
-        "fetchedAt": "2026-10-01T19:51:06.022Z"
+        "fetchedAt": "2026-10-01T20:15:29.953Z",
+        "requestId": "9839323c-9c83-4ab0-b5c7-db330bdf17ff"
       }
     },
     {
@@ -284,7 +294,8 @@
             17
           ]
         },
-        "fetchedAt": "2026-10-01T19:51:06.058Z"
+        "fetchedAt": "2026-10-01T20:15:30.147Z",
+        "requestId": "bc5949c9-bb51-4f7c-8620-e11938ddc085"
       }
     },
     {
@@ -309,7 +320,8 @@
             }
           ]
         },
-        "fetchedAt": "2026-10-01T19:51:06.096Z"
+        "fetchedAt": "2026-10-01T20:15:30.345Z",
+        "requestId": "be8e03d5-de32-47d1-91e7-eee847a8c096"
       }
     }
   ]
