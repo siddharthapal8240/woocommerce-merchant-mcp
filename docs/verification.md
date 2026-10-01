@@ -50,7 +50,7 @@ npm run tools:export
 npm run check:secrets -- --history
 ```
 
-A fresh environment must run store setup/seed first. CI performs that bootstrap on a clean Ubuntu runner and verifies Node.js 22/24 separately. New CI run results will be recorded after pushing this reassessment; earlier successful prototype runs are historical evidence only.
+A fresh environment must run store setup/seed first. CI performs that bootstrap on a clean Ubuntu runner and verifies Node.js 22/24 separately. [GitHub Actions run 36920985255](https://github.com/siddharthapal8240/woocommerce-merchant-mcp/actions/runs/36920985255) passed all three jobs on implementation commit `4f9222a`: Node.js 22 checks, Node.js 24 checks and a fresh real WooCommerce setup/seed/live test/demo. Both Node jobs also regenerated the MCP specification without a diff and passed the focused secret checks. Synthetic capacity and fictional real-store demo artifacts are attached to the run. Earlier prototype runs are historical evidence only.
 
 ## Explicit limitations
 
