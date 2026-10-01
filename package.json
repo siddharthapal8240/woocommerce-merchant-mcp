@@ -5,15 +5,22 @@
   "description": "Read-only WooCommerce merchant connector for MCP agents",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.9.0"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "start": "node --env-file-if-exists=.env dist/src/index.js",
     "dev": "node --env-file-if-exists=.env --import tsx src/index.ts",
-    "test": "tsx --test tests/*.test.ts",
-    "check": "npm run typecheck && npm test && npm run build"
+    "test": "tsx --test tests/connector.test.ts tests/hardening.test.ts",
+    "check": "npm run format:check && npm run typecheck && npm test && npm run build",
+    "store:setup": "tsx scripts/setup-store.ts",
+    "store:seed": "tsx scripts/seed-store.ts",
+    "test:live": "npm run build && tsx --test tests/live.test.ts",
+    "demo": "npm run build && tsx scripts/demo.ts",
+    "tools:export": "npm run build && tsx scripts/export-tools.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
@@ -21,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "26.6.3",
+    "prettier": "3.9.9",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
   }

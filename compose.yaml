@@ -1,7 +1,8 @@
-# Local test infrastructure only. Connector implementation is TypeScript.
+name: merchant-mcp
+# Loopback-only fictional store. Never deploy these demo database credentials.
 services:
   db:
-    image: mariadb:11.4
+    image: mariadb:11.4@sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b
     environment:
       MARIADB_DATABASE: wordpress
       MARIADB_USER: wordpress
@@ -10,15 +11,15 @@ services:
     volumes:
       - database:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
       interval: 5s
       timeout: 5s
       retries: 20
   wordpress:
-    image: wordpress:6.8.3-php8.3-apache
+    image: wordpress:6.8.3-php8.3-apache@sha256:30bff39330d1693b0ce13d32fc9b7bb67193064f040b7d60d3494e136fa599d4
     ports:
-      - "127.0.0.1:8080:80"
-    environment:
+      - '127.0.0.1:8080:80'
+    environment: &wp-environment
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: local-demo-only
@@ -28,6 +29,26 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  proxy:
+    image: caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+    ports:
+      - '127.0.0.1:8443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+    depends_on:
+      - wordpress
+  cli:
+    image: wordpress:cli-php8.3@sha256:36243da432a0f0a3b56dc3240ecee9b159108d71305e7c064d987a20a465bfde
+    profiles: [tools]
+    user: '33:33'
+    environment: *wp-environment
+    volumes:
+      - wordpress:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   database:
   wordpress:
+  certificates:

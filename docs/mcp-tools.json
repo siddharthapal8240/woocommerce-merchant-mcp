@@ -1,0 +1,184 @@
+{
+  "tools": [
+    {
+      "name": "list_orders",
+      "description": "List one page of orders, optionally filtered by status. Does not include customer contact or address information.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": { "default": 1, "type": "integer", "minimum": 1, "maximum": 10000 },
+          "per_page": { "default": 10, "type": "integer", "minimum": 1, "maximum": 50 },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "on-hold",
+              "completed",
+              "cancelled",
+              "refunded",
+              "failed"
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "search_orders",
+      "description": "Search orders using WooCommerce native text search. Matching depends on the store; this is not guaranteed exact order-number lookup.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": { "default": 1, "type": "integer", "minimum": 1, "maximum": 10000 },
+          "per_page": { "default": 10, "type": "integer", "minimum": 1, "maximum": 50 },
+          "search": { "type": "string", "minLength": 1, "maxLength": 200 }
+        },
+        "required": ["search"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "get_order",
+      "description": "Get an order using its internal numeric WooCommerce ID, obtained from list/search results.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 }
+        },
+        "required": ["id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "list_products",
+      "description": "List one page of products and inventory fields. Null stock quantity is not zero; parent stock does not establish variant availability.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": { "default": 1, "type": "integer", "minimum": 1, "maximum": 10000 },
+          "per_page": { "default": 10, "type": "integer", "minimum": 1, "maximum": 50 },
+          "stock_status": { "type": "string", "enum": ["instock", "outofstock", "onbackorder"] }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "search_products",
+      "description": "Search products by native text search and/or an exact SKU filter. At least one filter is required.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": { "default": 1, "type": "integer", "minimum": 1, "maximum": 10000 },
+          "per_page": { "default": 10, "type": "integer", "minimum": 1, "maximum": 50 },
+          "search": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "sku": { "type": "string", "minLength": 1, "maxLength": 100 }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "get_product",
+      "description": "Get a product by its internal ID, including stock tracking state and variation IDs. Use list_product_variations or get_product_variation for variant-level inventory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 }
+        },
+        "required": ["id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "list_product_variations",
+      "description": "List variations of a variable product and their stock. Use a parent product ID from a product or order. Stock managed by parent requires checking the parent too.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "product_id": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+          "page": { "default": 1, "type": "integer", "minimum": 1, "maximum": 10000 },
+          "per_page": { "default": 10, "type": "integer", "minimum": 1, "maximum": 50 }
+        },
+        "required": ["product_id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    },
+    {
+      "name": "get_product_variation",
+      "description": "Get the exact variation referenced by an order line item. Supply both the parent product_id and variation_id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "product_id": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 },
+          "variation_id": { "type": "integer", "exclusiveMinimum": 0, "maximum": 9007199254740991 }
+        },
+        "required": ["product_id", "variation_id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": { "taskSupport": "forbidden" }
+    }
+  ]
+}

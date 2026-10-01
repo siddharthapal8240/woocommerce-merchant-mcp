@@ -13,7 +13,7 @@ Deliver Assignment 3: a private WooCommerce connector exposing authenticated, re
 
 ## Phase 1 — Foundation
 
-Implemented: strict TypeScript, Node.js, Zod, MCP SDK, GET-only API client, six list/get/search tools, environment configuration, safe errors, pagination and retries.
+Implemented: strict TypeScript, Node.js, Zod, MCP SDK, GET-only API client, eight order/product/variation tools, environment configuration, safe errors, pagination and retries.
 
 Acceptance: typecheck, unit tests, MCP transport tests, and build pass. Test URL validation, secret handling, bounded retries, invalid arguments and response minimization.
 
@@ -43,16 +43,19 @@ Acceptance: `npm ci` and documented checks pass; live evidence exists; setup is 
 
 ## Testing layers
 
-| Layer | Purpose | Evidence |
-| --- | --- | --- |
-| Static | Strict types and compilation | typecheck/build |
-| Unit/fault | Configuration, transport errors, bounded retries, deadlines | Node test runner |
-| MCP integration | Discovery, schemas, tool execution, safe failures | SDK client over transports |
-| Real-store integration | Native WooCommerce API and auth semantics | seeded Docker store |
-| End-to-end | Spawn compiled server, discover and invoke tools | stdio demo report |
-| Submission | Secret checks, documentation accuracy, clean Git state | final verification |
+| Layer                  | Purpose                                                     | Evidence                   |
+| ---------------------- | ----------------------------------------------------------- | -------------------------- |
+| Static                 | Strict types and compilation                                | typecheck/build            |
+| Unit/fault             | Configuration, transport errors, bounded retries, deadlines | Node test runner           |
+| MCP integration        | Discovery, schemas, tool execution, safe failures           | SDK client over transports |
+| Real-store integration | Native WooCommerce API and auth semantics                   | seeded Docker store        |
+| End-to-end             | Spawn compiled server, discover and invoke tools            | stdio demo report          |
+| Submission             | Secret checks, documentation accuracy, clean Git state      | final verification         |
 
 ## Completion record
 
-- Phase 1: implemented; initial seven tests, typecheck and build passed.
-- Phases 2–5: in progress. Update this record with actual evidence as work completes.
+- Phase 1: complete. Strict types, formatting, build and 15 unit/protocol/fault tests passed.
+- Phase 2: complete. Real WooCommerce 10.2.2 store runs over verified local HTTPS; restricted credentials and repeatable fictional seed verified.
+- Phase 3: complete. Live tests passed for all eight tools, native auth, denied writes, pagination, search, variants, missing records and null stock.
+- Phase 4: complete for the MCP-specification route. Compiled stdio demo and exported tool specification are checked in; model-host prompts/configuration are supplied. Direct Agent Studio access remains unavailable and is not claimed.
+- Phase 5: documentation and local verification complete; final push and fresh GitHub CI verification in progress.

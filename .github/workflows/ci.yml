@@ -13,3 +13,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+  real-store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run store:setup
+      - run: npm run store:seed
+      - run: npm run test:live
+      - run: npm run demo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fictional-store-demo
+          path: evidence/demo.json
+      - if: always()
+        run: docker compose down

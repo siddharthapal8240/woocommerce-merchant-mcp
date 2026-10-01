@@ -1,0 +1,316 @@
+{
+  "generatedAt": "2026-10-01T19:51:06.097Z",
+  "mode": "deterministic MCP client workflow against real WooCommerce; not an LLM-generated answer",
+  "question": "Which processing or on-hold orders have stock concerns?",
+  "findings": [
+    "Order #19 (processing): Canvas Tote Bag × 1 — OUT OF STOCK; current quantity: 0.",
+    "Order #19 (processing): Ceramic Coffee Mug × 1 — CURRENT STOCK SUFFICIENT; current quantity: 7.",
+    "Order #18 (processing): Blue Everyday T-shirt × 2 — CURRENT STOCK SUFFICIENT; current quantity: 12.",
+    "Order #20 (on-hold): Everyday Hoodie - L × 1 — OUT OF STOCK; current quantity: 0."
+  ],
+  "trace": [
+    {
+      "tool": "list_orders",
+      "arguments": {
+        "status": "processing",
+        "page": 1,
+        "per_page": 2
+      },
+      "result": {
+        "data": [
+          {
+            "id": 19,
+            "number": "19",
+            "status": "processing",
+            "currency": "INR",
+            "total": "798.00",
+            "date_created": "2026-10-01T19:46:45",
+            "line_items": [
+              {
+                "id": 2,
+                "name": "Canvas Tote Bag",
+                "product_id": 12,
+                "variation_id": 0,
+                "quantity": 1,
+                "total": "349.00"
+              },
+              {
+                "id": 3,
+                "name": "Ceramic Coffee Mug",
+                "product_id": 13,
+                "variation_id": 0,
+                "quantity": 1,
+                "total": "449.00"
+              }
+            ]
+          },
+          {
+            "id": 18,
+            "number": "18",
+            "status": "processing",
+            "currency": "INR",
+            "total": "1198.00",
+            "date_created": "2026-10-01T19:46:45",
+            "line_items": [
+              {
+                "id": 1,
+                "name": "Blue Everyday T-shirt",
+                "product_id": 11,
+                "variation_id": 0,
+                "quantity": 2,
+                "total": "1198.00"
+              }
+            ]
+          }
+        ],
+        "fetchedAt": "2026-10-01T19:51:05.744Z",
+        "pagination": {
+          "page": 1,
+          "perPage": 2,
+          "total": 2,
+          "totalPages": 1,
+          "nextPage": null
+        }
+      }
+    },
+    {
+      "tool": "get_order",
+      "arguments": {
+        "id": 19
+      },
+      "result": {
+        "data": {
+          "id": 19,
+          "number": "19",
+          "status": "processing",
+          "currency": "INR",
+          "total": "798.00",
+          "date_created": "2026-10-01T19:46:45",
+          "line_items": [
+            {
+              "id": 2,
+              "name": "Canvas Tote Bag",
+              "product_id": 12,
+              "variation_id": 0,
+              "quantity": 1,
+              "total": "349.00"
+            },
+            {
+              "id": 3,
+              "name": "Ceramic Coffee Mug",
+              "product_id": 13,
+              "variation_id": 0,
+              "quantity": 1,
+              "total": "449.00"
+            }
+          ]
+        },
+        "fetchedAt": "2026-10-01T19:51:05.790Z"
+      }
+    },
+    {
+      "tool": "get_product",
+      "arguments": {
+        "id": 12
+      },
+      "result": {
+        "data": {
+          "id": 12,
+          "name": "Canvas Tote Bag",
+          "type": "simple",
+          "sku": "DEMO-TOTE",
+          "status": "publish",
+          "price": "349.00",
+          "manage_stock": true,
+          "stock_quantity": 0,
+          "stock_status": "outofstock",
+          "variations": []
+        },
+        "fetchedAt": "2026-10-01T19:51:05.826Z"
+      }
+    },
+    {
+      "tool": "get_product",
+      "arguments": {
+        "id": 13
+      },
+      "result": {
+        "data": {
+          "id": 13,
+          "name": "Ceramic Coffee Mug",
+          "type": "simple",
+          "sku": "DEMO-MUG",
+          "status": "publish",
+          "price": "449.00",
+          "manage_stock": true,
+          "stock_quantity": 7,
+          "stock_status": "instock",
+          "variations": []
+        },
+        "fetchedAt": "2026-10-01T19:51:05.862Z"
+      }
+    },
+    {
+      "tool": "get_order",
+      "arguments": {
+        "id": 18
+      },
+      "result": {
+        "data": {
+          "id": 18,
+          "number": "18",
+          "status": "processing",
+          "currency": "INR",
+          "total": "1198.00",
+          "date_created": "2026-10-01T19:46:45",
+          "line_items": [
+            {
+              "id": 1,
+              "name": "Blue Everyday T-shirt",
+              "product_id": 11,
+              "variation_id": 0,
+              "quantity": 2,
+              "total": "1198.00"
+            }
+          ]
+        },
+        "fetchedAt": "2026-10-01T19:51:05.900Z"
+      }
+    },
+    {
+      "tool": "get_product",
+      "arguments": {
+        "id": 11
+      },
+      "result": {
+        "data": {
+          "id": 11,
+          "name": "Blue Everyday T-shirt",
+          "type": "simple",
+          "sku": "DEMO-BLUE-TEE",
+          "status": "publish",
+          "price": "599.00",
+          "manage_stock": true,
+          "stock_quantity": 12,
+          "stock_status": "instock",
+          "variations": []
+        },
+        "fetchedAt": "2026-10-01T19:51:05.935Z"
+      }
+    },
+    {
+      "tool": "list_orders",
+      "arguments": {
+        "status": "on-hold",
+        "page": 1,
+        "per_page": 2
+      },
+      "result": {
+        "data": [
+          {
+            "id": 20,
+            "number": "20",
+            "status": "on-hold",
+            "currency": "INR",
+            "total": "1299.00",
+            "date_created": "2026-10-01T19:46:45",
+            "line_items": [
+              {
+                "id": 4,
+                "name": "Everyday Hoodie - L",
+                "product_id": 15,
+                "variation_id": 17,
+                "quantity": 1,
+                "total": "1299.00"
+              }
+            ]
+          }
+        ],
+        "fetchedAt": "2026-10-01T19:51:05.981Z",
+        "pagination": {
+          "page": 1,
+          "perPage": 2,
+          "total": 1,
+          "totalPages": 1,
+          "nextPage": null
+        }
+      }
+    },
+    {
+      "tool": "get_order",
+      "arguments": {
+        "id": 20
+      },
+      "result": {
+        "data": {
+          "id": 20,
+          "number": "20",
+          "status": "on-hold",
+          "currency": "INR",
+          "total": "1299.00",
+          "date_created": "2026-10-01T19:46:45",
+          "line_items": [
+            {
+              "id": 4,
+              "name": "Everyday Hoodie - L",
+              "product_id": 15,
+              "variation_id": 17,
+              "quantity": 1,
+              "total": "1299.00"
+            }
+          ]
+        },
+        "fetchedAt": "2026-10-01T19:51:06.022Z"
+      }
+    },
+    {
+      "tool": "get_product",
+      "arguments": {
+        "id": 15
+      },
+      "result": {
+        "data": {
+          "id": 15,
+          "name": "Everyday Hoodie",
+          "type": "variable",
+          "sku": "DEMO-HOODIE",
+          "status": "publish",
+          "price": "1299.00",
+          "manage_stock": false,
+          "stock_quantity": null,
+          "stock_status": "instock",
+          "variations": [
+            16,
+            17
+          ]
+        },
+        "fetchedAt": "2026-10-01T19:51:06.058Z"
+      }
+    },
+    {
+      "tool": "get_product_variation",
+      "arguments": {
+        "product_id": 15,
+        "variation_id": 17
+      },
+      "result": {
+        "data": {
+          "id": 17,
+          "sku": "DEMO-HOODIE-L",
+          "status": "publish",
+          "price": "1299.00",
+          "manage_stock": true,
+          "stock_quantity": 0,
+          "stock_status": "outofstock",
+          "attributes": [
+            {
+              "name": "Size",
+              "option": "L"
+            }
+          ]
+        },
+        "fetchedAt": "2026-10-01T19:51:06.096Z"
+      }
+    }
+  ]
+}

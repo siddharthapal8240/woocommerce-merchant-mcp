@@ -1,86 +1,124 @@
-# WooCommerce Merchant Connector
+# WooCommerce Merchant MCP
 
-A read-only TypeScript MCP connector for Razorpay's Forward-Deployed Engineer assignment. It lets an agent inspect orders and product inventory in one configured WooCommerce store.
+A TypeScript connector that lets an agent read a merchant's orders and inventory through eight MCP tools. Built for Razorpay's Forward-Deployed Engineer assignment, option 3.
 
-**Status:** connector foundation implemented; live WooCommerce authentication, local-store startup and an agent demonstration remain to be verified. Automated tests use synthetic upstream responses and are not evidence of a live integration.
+**Verified:** native WooCommerce API-key authentication over HTTPS, all eight tools through a compiled stdio MCP server, real-store search and pagination, variant inventory, and WooCommerce's rejection of writes with the connector's read-only key.
 
-## Stack
+## Merchant use case
 
-TypeScript, Node.js 22+, Zod, official MCP TypeScript SDK, native fetch, and Node's test runner. WordPress/WooCommerce and MariaDB are external test infrastructure, not application code.
+> “Which processing or on-hold orders have stock concerns?”
 
-## Install and check
+The included fictional store has five products, two hoodie variations and four orders. The demo retrieves order line items and their current inventory, flags the unavailable tote and size-L hoodie, and avoids promising fulfillment. It runs against real WordPress/WooCommerce, not a mock API.
+
+The included demo is a deterministic TypeScript MCP client. An LLM-enabled host can use the same tools and supplied prompts. Direct Agent Studio connectivity is unverified because no account or transport requirements were provided; the repository includes the MCP tool specification accepted by the assignment.
+
+## Quick start
+
+Requirements: Node.js 22.9+ or 24+, npm, a running Docker-compatible engine and Docker Compose; ports 8080 and 8443 free. Allow approximately 4 GB RAM for the local container environment and initial image downloads.
 
 ```sh
+git clone https://github.com/siddharthapal8240/woocommerce-merchant-mcp.git
+cd woocommerce-merchant-mcp
 npm ci
+npm run store:setup
+npm run store:seed
 npm run check
-cp .env.example .env
+npm run test:live
+npm run demo
 ```
 
-Set the store root URL and a WooCommerce **Read** consumer key/secret in `.env`. Never commit this file. Use a test store with fictional data. WooCommerce API keys are created under WooCommerce → Settings → Advanced → REST API. The key's associated WordPress user must have permission to read the selected records.
+Setup installs a pinned WooCommerce version and generates random local credentials. Seeding is repeatable and reuses fixtures. Runtime credentials are read-only; a separate local write key is used only by the fixture script. Everything under `.local/`, plus `.env`, is ignored by Git.
 
-```sh
-npm run build
-npm start
+See [local environment setup](docs/local-store.md) for macOS installation, TLS and troubleshooting.
+
+## What the demo shows
+
+```text
+Connected over stdio; discovered 8 read-only tools.
+Canvas Tote Bag × 1 — OUT OF STOCK; current quantity: 0.
+Ceramic Coffee Mug × 1 — CURRENT STOCK SUFFICIENT; current quantity: 7.
+Blue Everyday T-shirt × 2 — CURRENT STOCK SUFFICIENT; current quantity: 12.
+Everyday Hoodie - L × 1 — OUT OF STOCK; current quantity: 0.
 ```
 
-The server communicates over stdio; it waits for an MCP client and does not open a website. stdout is reserved for MCP messages.
+Actual output also includes the installation's order numbers. Evidence is in [the real-store MCP trace](evidence/demo.json). Stock observations are not reservations or shipment promises.
 
-## Connect an MCP client
+## Tools
 
-Use your MCP client's server configuration with absolute paths:
+| Tool                      | Inputs                                | Result                               |
+| ------------------------- | ------------------------------------- | ------------------------------------ |
+| `list_orders`             | page, per_page, optional status       | Order summaries and pagination       |
+| `search_orders`           | search, page, per_page                | Native WooCommerce text matches      |
+| `get_order`               | internal numeric id                   | Order details and line items         |
+| `list_products`           | page, per_page, optional stock_status | Products and inventory               |
+| `search_products`         | search and/or sku, page, per_page     | Product matches                      |
+| `get_product`             | internal numeric id                   | Product and inventory fields         |
+| `list_product_variations` | product_id, page, per_page            | Variations with stock and attributes |
+| `get_product_variation`   | product_id, variation_id              | Exact variation inventory            |
+
+The authoritative [MCP tool specification](docs/mcp-tools.json) is generated from `tools/list` using `npm run tools:export`. Tool inputs are validated with Zod. Pages default to 10 and are capped at 50. Follow `nextPage` explicitly; missing upstream pagination headers produce unknown totals, not a claim of completeness.
+
+## Connect your agent
+
+After building, configure a stdio MCP host:
 
 ```json
 {
   "mcpServers": {
     "woocommerce": {
       "command": "node",
-      "args": ["--env-file=/absolute/path/to/Razorpay/.env", "/absolute/path/to/Razorpay/dist/src/index.js"]
+      "args": [
+        "--env-file=/absolute/path/to/woocommerce-merchant-mcp/.local/connector.env",
+        "/absolute/path/to/woocommerce-merchant-mcp/dist/src/index.js"
+      ],
+      "env": {
+        "NODE_EXTRA_CA_CERTS": "/absolute/path/to/woocommerce-merchant-mcp/.local/root.crt"
+      }
     }
   }
 }
 ```
 
-This is a local MCP configuration example, not a verified Agent Studio configuration. Agent Studio transport/access requirements were not supplied in the assignment. Remote hosting and Streamable HTTP are not implemented.
+Use absolute paths. Local scripts trust only the generated project CA; no system-wide trust changes are required. See [the agent walkthrough](docs/agent-demo.md) for prompts and expected results.
 
-## Tools
+### Connect another test store
 
-| Tool | Inputs | Result |
-| --- | --- | --- |
-| `list_orders` | page, per_page, optional status | Order summaries with pagination |
-| `search_orders` | search, page, per_page | Native WooCommerce search results |
-| `get_order` | internal numeric id | One order and its line items |
-| `list_products` | page, per_page, optional stock_status | Product inventory summaries |
-| `search_products` | search and/or sku, page, per_page | Product matches |
-| `get_product` | internal numeric id | One product and inventory fields |
+Copy `.env.example` to `.env`. Set its HTTPS store root URL and a WooCommerce **Read** consumer key/secret created under WooCommerce → Settings → Advanced → REST API. The associated user must have read permissions for the records. Never put secrets in prompts or commit them.
 
-MCP `tools/list` exposes the authoritative JSON schemas, descriptions, and read-only annotations. Source definitions are in `src/server.ts`. Pages default to 10 items and are capped at 50. Call the returned nextPage explicitly. Missing pagination headers produce null totals; null nextPage with unknown totals does not establish completeness.
+```sh
+npm run build
+npm start
+```
 
-## Merchant scenario
+The server waits for JSON-RPC on stdin/stdout; it does not open a website. A normally certified remote store does not need the local CA. For the supplied local store, set `NODE_EXTRA_CA_CERTS` to the absolute `.local/root.crt` path before starting Node, or use the host configuration above.
 
-“Find processing orders and check whether their products are currently in stock.”
+## Reliability and limits
 
-1. Call `list_orders` with status `processing`.
-2. Select an order ID from results and call `get_order`.
-3. For its simple products, call `get_product` using line-item product IDs.
-4. Explain the retrieved status and inventory, including uncertainty.
+- GET-only endpoints, read-only key, HTTPS, header credentials and refused redirects.
+- Bounded retries for 429/502/503/504; numeric/date Retry-After support; long waits return an actionable error. Total upstream deadline: 25 seconds.
+- Cancellation propagation, 1 MiB response limit, upstream field projection and response validation.
+- Customer contact details, addresses, notes and metadata are excluded from tool results. Merchant-entered names remain untrusted text.
+- Decimal money strings and null stock quantities are preserved. Internal order IDs may differ from display numbers. Parent-managed variation stock requires checking the parent.
+- One store and trusted operator per process. No multi-tenant authorization, global quota coordination, refunds, payment collection, order writes or inventory updates.
+- Stdio transport only. Agent Studio access and hosted transport compatibility are not claimed.
 
-A display order number can differ from the internal ID. Inventory is current stock, not a reservation or a guarantee of shipment. Variable-product availability requires variant-level data, which this version does not expose.
+## Testing and documentation
 
-## Reliability and boundaries
+| Command                | Purpose                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `npm run check`        | Formatting, strict types, 15 unit/protocol/fault tests, build                      |
+| `npm run test:live`    | Real WooCommerce authentication, eight tools, pagination, errors and denied writes |
+| `npm run demo`         | Compiled server → stdio MCP client → real store; saves fictional evidence          |
+| `npm run tools:export` | Regenerate the MCP tool specification                                              |
 
-- Credentials travel in the Authorization header, never query parameters. Redirects are refused.
-- HTTPS is required except explicitly enabled loopback HTTP for fictional local data.
-- Only GET requests to orders/products endpoints are supported. No refunds, payment recovery, stock changes, or order updates.
-- 429/502/503/504 get up to three attempts with backoff and jitter. Retry-After is honored; waits over five seconds return an actionable error instead of retrying early. Whole request deadline: 25 seconds.
-- Auth errors, missing records, invalid responses and connection failures return safe errors. Upstream bodies and secrets are not exposed.
-- Responses use a field allowlist that excludes addresses, contact data, customer notes, metadata, and product descriptions. Product names remain untrusted data.
-- One trusted local operator and one store per process. No multi-tenant authorization, customer identity verification, shared concurrency limiter, or distributed quota management.
-- No OAuth, webhook ingestion, semantic search, shipment tracking or individual product-variation retrieval.
+GitHub Actions runs both the static/unit suite and a fresh real-store end-to-end job.
 
-See [local-store setup](docs/local-store.md) and [delivery milestones](docs/implementation-plan.md).
+- [Phased plan and acceptance criteria](docs/implementation-plan.md)
+- [Architecture and tradeoffs](docs/architecture.md)
+- [Local store setup](docs/local-store.md)
+- [Demo walkthrough](docs/agent-demo.md)
+- [Verification record](docs/verification.md)
 
 ## References
 
-- [WooCommerce REST API](https://developer.woocommerce.com/docs/apis/rest-api/)
-- [WooCommerce API reference](https://woocommerce.github.io/woocommerce-rest-api-docs/)
-- [Official MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/server)
+[WooCommerce REST API](https://developer.woocommerce.com/docs/apis/rest-api/) · [API reference](https://woocommerce.github.io/woocommerce-rest-api-docs/) · [MCP TypeScript SDK](https://ts.sdk.modelcontextprotocol.io/server) · [WP-CLI](https://developer.wordpress.org/cli/commands/)
